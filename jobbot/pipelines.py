@@ -4,9 +4,8 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
-from sqlalchemy.orm import sessionmaker
-from models import (db_connect, create_generic_listings_table,
-                    GenericListings)
+from models import GenericListings
+from database import create_db_conn
 
 
 class CompanyPipeline(object):
@@ -16,9 +15,7 @@ class CompanyPipeline(object):
         Initializes database connection and sessionmaker.
         Creates generic_listings table.
         """
-        engine = db_connect()
-        create_generic_listings_table(engine)
-        self.Session = sessionmaker(bind=engine)
+        self.Session = create_db_conn()
 
     def process_item(self, item, spider):
         """

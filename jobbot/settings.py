@@ -15,8 +15,8 @@ BOT_NAME = 'jobbot'
 SPIDER_MODULES = ['jobbot.spiders']
 NEWSPIDER_MODULE = 'jobbot.spiders'
 
+# Database Settings
 LISTINGS_DATABASE = os.getenv('LISTINGS_DATABASE')
-
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'jobbot (+http://www.yourdomain.com)'
