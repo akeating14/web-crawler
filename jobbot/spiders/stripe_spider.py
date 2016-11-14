@@ -1,19 +1,14 @@
 import re
+from urlparse import urlparse
+
 from scrapy.spiders import Rule, CrawlSpider
 from scrapy.linkextractors import LinkExtractor
 from scrapy.http import Request
 from jobbot.item_loaders import CompanyLoader
 from jobbot.items import ListingItem
 
-"""
-pycharm, breakpoint pycharm
-read documenttion to the end, it helps give you an idea of how to do things
-Try to implement for a specific page, indeed or dice, one or two different spiders than
-abstract. Javascript sites,
-"""
 
-
-class CompanySpider(CrawlSpider):
+class StripeSpider(CrawlSpider):
     """
     This spider will locate all job listings for an arbitrary company.
     The user must supply the companies url.
@@ -24,7 +19,7 @@ class CompanySpider(CrawlSpider):
           2. If user inputs a starting url that is not the root url
              it should be ignored and default to the root url.
     """
-    name = 'company'
+    name = 'stripe'
     company_name = 'Stripe'
     allowed_domains = ['stripe.com']  # optional parameter
     start_urls = ['https://stripe.com/jobs']
@@ -46,10 +41,10 @@ class CompanySpider(CrawlSpider):
         """
         root_start_urls = []
         for url in self.start_urls:
-            shortened_url = re.search(':\/\/(.*)', url)
-            root_domain = re.search(r'^[\w\d.]+', shortened_url.group(1))
+            parsed_url = urlparse(url)
+            root_domain = parsed_url.netloc
             if root_domain:
-                start_url = 'https://' + root_domain.group(0)
+                start_url = 'https://{url}'.format(url=root_domain)
                 root_start_urls.append(start_url)
             else:
                 root_start_urls.append(url)
@@ -57,7 +52,7 @@ class CompanySpider(CrawlSpider):
         return root_start_urls
 
     def start_requests(self):
-        if self.find_root_link is True:
+        if self.find_root_link:
             start_urls = self.root_links()
         else:
             start_urls = self.start_urls
@@ -75,9 +70,9 @@ class CompanySpider(CrawlSpider):
            domain careers.microsoft.com.
         6. Does not handle XML.
         """
-        base_job_page = [url + '/' + ext for url in self.root_links()
-                         for ext in self.possible_endpoints]
-        if response.url in base_job_page:
+        base_job_pages = ['{url}/{ext}'.format(url=url, ext=ext) for url in self.root_links()
+                          for ext in self.possible_endpoints]
+        if response.url in base_job_pages:
             return response
 
         loader = CompanyLoader(ListingItem(), response=response)
@@ -87,7 +82,7 @@ class CompanySpider(CrawlSpider):
         loader.add_xpath('location', '//span[@class="location"]/text()')
         loader.add_xpath('position_title', '//h1/text()')
         loader.add_xpath('description', '//p/text()')
-        loader.add_xpath('qualifications', '//p/text()')
+        loader.add_xpath('qualifications', '//li/text()')
         return loader.load_item()
 
 
