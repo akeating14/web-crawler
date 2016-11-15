@@ -15,7 +15,7 @@ def db_connect():
     return create_engine(settings.LISTINGS_DATABASE)
 
 
-def create_generic_listings_table(engine):
+def create_all_tables(engine):
     """"""
     DeclarativeBase.metadata.create_all(engine)
 

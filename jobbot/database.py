@@ -1,5 +1,5 @@
 from sqlalchemy.orm import sessionmaker
-from models import db_connect, create_generic_listings_table
+from models import db_connect, create_all_tables
 
 
 def create_db_conn():
@@ -11,5 +11,5 @@ def create_db_conn():
     :return: sqlalchmey session
     """
     engine = db_connect()
-    create_generic_listings_table(engine)
+    create_all_tables(engine)
     return sessionmaker(bind=engine)
