@@ -15,7 +15,7 @@ def db_connect():
     return create_engine(settings.LISTINGS_DATABASE)
 
 
-def create_generic_listings_table(engine):
+def create_all_tables(engine):
     """"""
     DeclarativeBase.metadata.create_all(engine)
 
@@ -27,7 +27,7 @@ class GenericListings(DeclarativeBase):
     """
     __tablename__ = "generic_listings"
 
-    id = Column(Integer, primary_key=True)
+    listing_id = Column(Integer, primary_key=True)
     company_name = Column('company_name', String(length=300, convert_unicode=True),
                           nullable=True)
     position_title = Column('title', String(length=300, convert_unicode=True),
