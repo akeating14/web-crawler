@@ -11,16 +11,12 @@ from jobbot.items import ListingItem
 class CompanySpider(CrawlSpider):
     """
     This spider will locate all job listings for an arbitrary company.
-    The user must supply the companies url.
-
-    TODO: 1. all class parameters should either be defined
-             by a settings file or should be defined in
-             the crawling command.
-          2. If user inputs a starting url that is not the root url
-             it should be ignored and default to the root url.
+    The user must supply the companies url. All the user needs to do is
+    input a list of start urls.
     """
     name = 'company'
-    start_urls = ['https://www.stripe.com/',
+    company_name = 'Stripe'
+    start_urls = ['https://stripe.com/jobs'
                   'https://www.google.com/',
                   'https://www.walmart.com/',
                   'http://corporate.exxonmobil.com/',
@@ -32,12 +28,14 @@ class CompanySpider(CrawlSpider):
                   'http://www.citigroup.com/citi/',
                   'https://www.bankofamerica.com/',
                   'http://www.aig.com/individual',
+                  'https://slack.com/',
+                  'http://www.espn.com/',
+                  'https://justworks.com/'
                   ]
-    possible_domains = ['https://jobs', 'https://corporate', 'https://careers', 'https://www']
-    allowed_domains = ['{domain}{url}'.format(url=re.search(r'\..*', urlparse(url).netloc).group(0), domain=text)
-                       for url in start_urls for text in possible_domains]
+    possible_domains = ['jobs.', 'corporate.', 'careers.', '']
     find_root_link = True
     possible_endpoints = ['jobs', 'careers', 'joinus']
+
     """
     Example job pages:
                         1. https://jobs.walmart.com/us/jobs/820209/HERMISTON-OR-Trans-ServiceShopTechnician-II?lang=en-US
@@ -55,7 +53,6 @@ class CompanySpider(CrawlSpider):
 
     rules = (
         # Extract links matching possible extensions for company job's pages
-        # follow career.
         Rule(LinkExtractor(allow=('jobs?\..*\/?.*job.*')), callback='parse_item', follow=True),
         Rule(LinkExtractor(allow=('careers?\..*\/?.*job.*')), callback='parse_item', follow=True),
         Rule(LinkExtractor(allow=('careers\/.*job.*')), callback='parse_item', follow=True),
@@ -64,9 +61,21 @@ class CompanySpider(CrawlSpider):
         Rule(LinkExtractor(allow=('joinus')), follow=True),
     )
 
+    def __int__(self):
+        self.allowed_domains = self.process_start_urls()
+
+    def process_start_urls(self):
+        return [re.sub('^www.$', '', urlparse(url).netloc,) for url in self.start_urls]
+
+    # def get_allowed_domains(self):
+    #     return ['{domain}{url}'.format(url=url, domain=text)
+    #             for url in self.process_start_urls() for text in self.possible_domains]
+
     def root_links(self):
         """
         It will return a list of root domains.
+        TODO:
+              1. Combine regex statements
         """
         root_start_urls = []
         for url in self.start_urls:
@@ -80,11 +89,6 @@ class CompanySpider(CrawlSpider):
 
         return root_start_urls
 
-    @staticmethod
-    def get_company_name(url):
-        domain = urlparse(url).netloc
-        return domain
-
     def start_requests(self):
         if self.find_root_link:
             start_urls = self.root_links()
@@ -96,13 +100,9 @@ class CompanySpider(CrawlSpider):
     def parse_item(self, response):
         """
         TODO:
-        1. Handle a situation where xpath gets no links
-        2. Handle the situation where the homepage returns null
-        3. Design is weak because it relies on key words
-        4. Does not handle Javascript
-        5. Does not handle situation where job page lives on another
-           domain careers.microsoft.com.
-        6. Does not handle XML.
+        1. Design is weak because it relies on key words
+        2. Does not handle Javascript
+        3. Does not handle XML.
         """
         base_job_pages = ['{url}/{ext}'.format(url=url, ext=ext) for url in self.root_links()
                           for ext in self.possible_endpoints]
@@ -110,7 +110,7 @@ class CompanySpider(CrawlSpider):
             return response
 
         loader = CompanyLoader(ListingItem(), response=response)
-        loader.add_value('company_name', self.get_company_name(response.url))
+        loader.add_value('company_name', urlparse(response.url).netloc)
         loader.add_value('listing_link', response.url)
         loader.add_value('position_page', response.text)
         loader.add_xpath('location', '//span[@class="location"]/text()')

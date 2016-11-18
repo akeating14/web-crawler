@@ -11,6 +11,7 @@ import os
 #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
 
 BOT_NAME = 'jobbot'
+#DEPTH_LIMIT = 6
 
 SPIDER_MODULES = ['jobbot.spiders']
 NEWSPIDER_MODULE = 'jobbot.spiders'

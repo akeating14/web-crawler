@@ -4,10 +4,12 @@ import os
 from scrapy.http import HtmlResponse
 from jobbot.models import create_all_tables
 from jobbot.spiders.stripe_spider import StripeSpider
-from conftest import create_session
 
 
 class TestStripeSpider:
+    """
+    I could add more tests for data integrity.
+    """
 
     company_name = 'Stripe'
     allowed_domains = ['stripe.com']  # optional parameter
@@ -19,7 +21,7 @@ class TestStripeSpider:
 
     def test_parse_item(self, create_session):
         """
-        What more do I need in this test?
+        Tests parse item
         :return:
         """
         dir = os.path.dirname(__file__)

@@ -16,15 +16,11 @@ class CompanyPipeline(object):
         Creates generic_listings table.
         """
         self.Session = create_db_conn()
+        self.session = self.Session()
 
     def close_spider(self, spider):
-        session = self.Session()
-        try:
-            session.commit()
-        except:
-            session.rollback()
-            raise
-        session.close()
+        self.session.close()
+
 
     def process_item(self, item, spider):
         """
@@ -32,9 +28,15 @@ class CompanyPipeline(object):
         and saves listings to a database.
         """
 
-        session = self.Session()
         listing = GenericListings(**item)
 
-        session.add(listing)
+        self.session.add(listing)
+
+        try:
+            self.session.commit()
+        except:
+            self.session.rollback()
+            raise
+
 
         return item
